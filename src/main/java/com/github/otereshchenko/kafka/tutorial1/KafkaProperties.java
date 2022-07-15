@@ -1,6 +1,8 @@
 package com.github.otereshchenko.kafka.tutorial1;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.Properties;
@@ -13,4 +15,11 @@ public class KafkaProperties {
         setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
     }};
 
+    public static final Properties CONSUMER_PROPS = new Properties() {{
+        setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
+        setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        setProperty(ConsumerConfig.GROUP_ID_CONFIG, "my-fourht-application");
+        setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    }};
 }
