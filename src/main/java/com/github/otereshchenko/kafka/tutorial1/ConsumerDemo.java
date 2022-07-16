@@ -1,5 +1,6 @@
 package com.github.otereshchenko.kafka.tutorial1;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -8,15 +9,19 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Collections;
+import java.util.Properties;
 
 public class ConsumerDemo {
     private static final Logger logger = LoggerFactory.getLogger(ConsumerDemo.class);
 
     public static void main(String[] args) {
         String topic = "first-topic";
+        String groupId = "my-fourth-application";
 
+        Properties consumeProps = KafkaProperties.CONSUMER_BASIC_PROPS;
+        consumeProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, groupId);
 
-        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(KafkaProperties.CONSUMER_PROPS)) {
+        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumeProps)) {
             consumer.subscribe(Collections.singletonList(topic));
 
             while (true) {

@@ -6,15 +6,21 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 public class ProducerWithCallback {
     private static final Logger logger = LoggerFactory.getLogger(ProducerWithCallback.class);
+    private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy 'at' hh:mm:ss");
 
     public static void main(String[] args) {
-
         String topic = "first-topic";
+        String currentTime = timeFormatter.format(LocalDateTime.now());
 
-        for (int i = 1; i < 10; i++) {
-            String message = "hello new world " + i;
+        logger.info("Kafka produce messages since: " + currentTime);
+
+        for (int i = 1; i < 6; i++) {
+            String message = currentTime + " hello world " + i;
             String key = "key_id_" + i;
 
             logger.info(key);
