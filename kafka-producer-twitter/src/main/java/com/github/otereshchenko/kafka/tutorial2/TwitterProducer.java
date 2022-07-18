@@ -1,11 +1,15 @@
 package com.github.otereshchenko.kafka.tutorial2;
 
+import com.github.otereshchenko.kafka.core.KafkaProperties;
 import com.twitter.clientlib.ApiException;
 import com.twitter.clientlib.TwitterCredentialsBearer;
 import com.twitter.clientlib.api.TwitterApi;
 import com.twitter.clientlib.model.Get2TweetsSearchRecentResponse;
 import com.twitter.clientlib.model.ResourceUnauthorizedProblem;
 import com.twitter.clientlib.model.Tweet;
+import org.apache.kafka.clients.producer.Callback;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +19,7 @@ import static java.util.Collections.emptyList;
 
 public class TwitterProducer {
     private final Logger logger = LoggerFactory.getLogger(TwitterProducer.class);
+    public final String topic = "twitter-tweets";
 
     // These secrets should be read from a config file
     private final String bearerToken = "AAAAAAAAAAAAAAAAAAAAAAbcewEAAAAARiLDGD284lp4kNoR2igccAsBeKQ%3DkzYXfE2MPRfrstgMAWw1C01bfODhqoqsaT27o800fxEQKrc0x4";
@@ -24,10 +29,41 @@ public class TwitterProducer {
     }
 
     private void run() {
-        List<Tweet> data1 = getData();
-        data1.forEach((t) -> logger.info(t.getId() + " " + t.getText()));
+        KafkaProducer<String, String> producer = getKafkaProducer();
+        Callback sendingCallback = (metadata, ex) -> {
+            if (ex != null) {
+                logger.error("Something bad happened", ex);
+            }
+        };
+
+        List<Tweet> data = getData();
+
+
+        data.stream().map(t -> "Message ID: " + t.getId() + ",  Message text: " + t.getText())
+                .peek(logger::info)
+                .map(this::getRecord)
+                .forEach(r -> producer.send(r, sendingCallback));
 
         logger.info("End of application");
+    }
+
+    private ProducerRecord<String, String> getRecord(String message) {
+        return new ProducerRecord<>(topic, null, message);
+    }
+
+    private KafkaProducer<String, String> getKafkaProducer() {
+        KafkaProducer<String, String> producer = new KafkaProducer<>(KafkaProperties.PRODUCER_PROPS);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            logger.info("stopping application...");
+            logger.info("sutting down client from twitter...");
+//            client.stop();
+            logger.info("closing producer...");
+            producer.close();
+            logger.info("done!");
+        }));
+
+        return producer;
     }
 
     public Get2TweetsSearchRecentResponse getResponse() {
