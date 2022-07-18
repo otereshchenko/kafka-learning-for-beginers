@@ -1,4 +1,4 @@
-package com.github.otereshchenko.kafka.tutorial1;
+package com.github.otereshchenko.kafka.core;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;

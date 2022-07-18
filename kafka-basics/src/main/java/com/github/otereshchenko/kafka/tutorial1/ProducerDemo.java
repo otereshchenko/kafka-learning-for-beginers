@@ -1,5 +1,6 @@
 package com.github.otereshchenko.kafka.tutorial1;
 
+import com.github.otereshchenko.kafka.core.KafkaProperties;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
