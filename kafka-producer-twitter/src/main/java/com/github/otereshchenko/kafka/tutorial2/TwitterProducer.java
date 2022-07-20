@@ -15,14 +15,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import static com.github.otereshchenko.kafka.core.KafkaProperties.PRODUCER_PROPS;
+import static com.github.otereshchenko.kafka.tutorial2.TwitterProperties.KAFKA_TOPIC;
+import static com.github.otereshchenko.kafka.tutorial2.TwitterProperties.TWITTER_BEARER_TOKEN;
 import static java.util.Collections.emptyList;
 
 public class TwitterProducer {
     private final Logger logger = LoggerFactory.getLogger(TwitterProducer.class);
-    public final String topic = "twitter-tweets";
-
-    // These secrets should be read from a config file
-    private final String bearerToken = "AAAAAAAAAAAAAAAAAAAAAAbcewEAAAAARiLDGD284lp4kNoR2igccAsBeKQ%3DkzYXfE2MPRfrstgMAWw1C01bfODhqoqsaT27o800fxEQKrc0x4";
 
     public static void main(String[] args) {
         new TwitterProducer().run();
@@ -48,11 +47,11 @@ public class TwitterProducer {
     }
 
     private ProducerRecord<String, String> getRecord(String message) {
-        return new ProducerRecord<>(topic, null, message);
+        return new ProducerRecord<>(KAFKA_TOPIC, null, message);
     }
 
     private KafkaProducer<String, String> getKafkaProducer() {
-        KafkaProducer<String, String> producer = new KafkaProducer<>(KafkaProperties.PRODUCER_PROPS);
+        KafkaProducer<String, String> producer = new KafkaProducer<>(PRODUCER_PROPS);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             logger.info("stopping application...");
@@ -68,8 +67,7 @@ public class TwitterProducer {
 
     public Get2TweetsSearchRecentResponse getResponse() {
         logger.info("Setup");
-        String bearerToken = "AAAAAAAAAAAAAAAAAAAAAAbcewEAAAAARiLDGD284lp4kNoR2igccAsBeKQ%3DkzYXfE2MPRfrstgMAWw1C01bfODhqoqsaT27o800fxEQKrc0x4";
-        TwitterCredentialsBearer bearer = new TwitterCredentialsBearer(bearerToken);
+        TwitterCredentialsBearer bearer = new TwitterCredentialsBearer(TWITTER_BEARER_TOKEN);
         TwitterApi apiInstance = new TwitterApi(bearer);
 
         try {
