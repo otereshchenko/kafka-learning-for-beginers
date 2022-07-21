@@ -1,6 +1,7 @@
 package com.github.otereshchenko.kafka.tutorial2;
 
-import com.github.otereshchenko.kafka.core.KafkaProperties;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.twitter.clientlib.ApiException;
 import com.twitter.clientlib.TwitterCredentialsBearer;
 import com.twitter.clientlib.api.TwitterApi;
@@ -14,17 +15,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static com.github.otereshchenko.kafka.core.KafkaProperties.PRODUCER_PROPS;
-import static com.github.otereshchenko.kafka.tutorial2.TwitterProperties.KAFKA_TOPIC;
-import static com.github.otereshchenko.kafka.tutorial2.TwitterProperties.TWITTER_BEARER_TOKEN;
+import static com.github.otereshchenko.kafka.core.KafkaProperties.getProperty;
 import static java.util.Collections.emptyList;
 
 public class TwitterProducer {
     private final Logger logger = LoggerFactory.getLogger(TwitterProducer.class);
+    private final ObjectMapper mapper = new ObjectMapper();
 
     public static void main(String[] args) {
         new TwitterProducer().run();
+    }
+
+    private TwitterProducer() {
+        mapper.setSerializationInclusion(NON_NULL);
     }
 
     private void run() {
@@ -35,10 +43,10 @@ public class TwitterProducer {
             }
         };
 
-        List<Tweet> data = getData();
-
-
-        data.stream().map(t -> "Message ID: " + t.getId() + ",  Message text: " + t.getText())
+        List<Tweet> data = getTweets();
+        data.stream().map(this::toJson)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .peek(logger::info)
                 .map(this::getRecord)
                 .forEach(r -> producer.send(r, sendingCallback));
@@ -46,8 +54,17 @@ public class TwitterProducer {
         logger.info("End of application");
     }
 
+    private Optional<String> toJson(Tweet tweet) {
+        try {
+            return Optional.of(mapper.writeValueAsString(tweet));
+        } catch (JsonProcessingException e) {
+            logger.error("Exception during converting to JSON", e);
+            return Optional.empty();
+        }
+    }
+
     private ProducerRecord<String, String> getRecord(String message) {
-        return new ProducerRecord<>(KAFKA_TOPIC, null, message);
+        return new ProducerRecord<>(getProperty("kafka.topic.twitter.tweets"), null, message);
     }
 
     private KafkaProducer<String, String> getKafkaProducer() {
@@ -67,7 +84,7 @@ public class TwitterProducer {
 
     public Get2TweetsSearchRecentResponse getResponse() {
         logger.info("Setup");
-        TwitterCredentialsBearer bearer = new TwitterCredentialsBearer(TWITTER_BEARER_TOKEN);
+        TwitterCredentialsBearer bearer = new TwitterCredentialsBearer(getProperty("twitter.bearer.token"));
         TwitterApi apiInstance = new TwitterApi(bearer);
 
         try {
@@ -81,7 +98,7 @@ public class TwitterProducer {
         }
     }
 
-    public List<Tweet> getData() {
+    public List<Tweet> getTweets() {
         Get2TweetsSearchRecentResponse result = getResponse();
         if (result == null) {
             return emptyList();
