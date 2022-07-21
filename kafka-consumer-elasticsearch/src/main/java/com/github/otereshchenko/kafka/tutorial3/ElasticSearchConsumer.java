@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import static com.github.otereshchenko.kafka.tutorial3.ElasticSearchProperties.*;
+import static com.github.otereshchenko.kafka.core.KafkaProperties.getProperty;
 import static org.apache.http.auth.AuthScope.ANY;
 
 
@@ -35,10 +35,10 @@ public class ElasticSearchConsumer {
 
     private static RestHighLevelClient createClient() {
         CredentialsProvider credentialProvider = new BasicCredentialsProvider();
-        credentialProvider.setCredentials(ANY, new UsernamePasswordCredentials(ELASTIC_SEARCH_USERNAME, ELASTIC_SEARCH_PASSWORD));
+        credentialProvider.setCredentials(ANY, new UsernamePasswordCredentials(getProperty("elastic.search.username"), getProperty("elastic.search.password")));
 
         RestClientBuilder restClientBuilder = RestClient.builder(
-                        new HttpHost(ELASTIC_SEARCH_HOSTNAME, 443, "https"))
+                        new HttpHost(getProperty("elastic.search.hostname"), 443, "https"))
                 .setHttpClientConfigCallback(httpAsyncClientBuilder -> httpAsyncClientBuilder.setDefaultCredentialsProvider(credentialProvider));
 
         return new RestHighLevelClient(restClientBuilder);
