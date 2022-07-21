@@ -24,6 +24,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
+        <artifact.id.kafka>kafka_2.13</artifact.id.kafka>
+        <version.gson>2.9.0</version.gson>
+        <version.kafka>3.2.0</version.kafka>
+        <version.slf4j>1.7.36</version.slf4j>
     </properties>
 
 
