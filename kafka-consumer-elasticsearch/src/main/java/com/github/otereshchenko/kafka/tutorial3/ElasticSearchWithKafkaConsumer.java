@@ -10,6 +10,8 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -42,6 +44,8 @@ public class ElasticSearchWithKafkaConsumer {
         while (true) {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
 
+            BulkRequest bulkRequest = new BulkRequest();
+
             int countRecords = records.count();
             logger.info("Received " + countRecords + " records.");
 
@@ -49,22 +53,18 @@ public class ElasticSearchWithKafkaConsumer {
                 String json = record.value();
                 String id = extractIdFromTweet(json);
                 logger.info("json data: " + json);
-
                 IndexRequest request = new IndexRequest("twitter", "tweets", id).source(json, XContentType.JSON);
-                IndexResponse response = client.index(request, RequestOptions.DEFAULT);
-
-                String responseId = response.getId();
-                logger.info(responseId);
-
-                doSleep(10);
-
-
+                bulkRequest.add(request);
             }
+
             if (countRecords > 0) {
+                BulkResponse bulkResponse = client.bulk(bulkRequest, RequestOptions.DEFAULT);
                 logger.info("Committing offsets...");
                 consumer.commitSync();
                 logger.info("Offsets have been committed");
-                doSleep(1000);
+                doSleep(500);
+            } else {
+                doSleep(5000);
             }
         }
 //        client.close();
